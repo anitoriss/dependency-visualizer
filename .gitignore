@@ -1,0 +1,18 @@
+# Служебные файлы Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Виртуальные окружения
+.venv/
+venv/
+
+# Настройки редакторов
+.vscode/
+.idea/
+
+# Результаты запуска
+graph.svg
