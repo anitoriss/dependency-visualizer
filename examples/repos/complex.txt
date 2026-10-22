@@ -1,0 +1,9 @@
+# Несколько циклов, общие зависимости и многобуквенные имена
+APP: CORE NET UI
+CORE: LOG UTIL
+NET: CORE HTTP
+UI: CORE THEME
+HTTP: NET UTIL
+THEME: UI
+LOG:
+UTIL: LOG

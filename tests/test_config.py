@@ -110,3 +110,9 @@ def test_test_mode_rejects_version(repo_file):
     """В тестовом репозитории нет версий пакетов."""
     with pytest.raises(ConfigError, match="версия пакета не задаётся"):
         parse_args(["-p", "A", "-t", "-r", repo_file, "-v", "1.0"])
+
+
+def test_filter_must_not_match_analysed_package():
+    """Анализируемый пакет не может сам попадать под фильтр."""
+    with pytest.raises(ConfigError, match="сам содержит подстроку"):
+        parse_args(["-p", "requests", "-f", "REQ"])

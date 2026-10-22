@@ -2,34 +2,53 @@
 
 import sys
 
-from depviz.config import Config, ConfigError, parse_args
-from depviz.pypi import PackageInfo, PypiRepository
+from depviz.config import LATEST, Config, ConfigError, parse_args
+from depviz.graph import build_graph
+from depviz.pypi import PypiRepository
+from depviz.report import format_graph
 from depviz.repository import RepositoryError
+from depviz.requirements import normalize_name
+from depviz.testrepo import FileRepository
 
 EXIT_OK = 0
 EXIT_ERROR = 1
 EXIT_USAGE = 2
 
 
-def format_direct(info: PackageInfo) -> list[str]:
-    """Вернуть строки с прямыми зависимостями пакета."""
-    required = info.required()
-    lines = [f"{info.name} {info.version} (файл {info.source})",
-             f"Прямые зависимости ({len(required)}):"]
-    lines += [f"  {req}" for req in required] or ["  (нет)"]
-    optional = info.optional()
-    if optional:
-        names = ", ".join(req.name for req in optional)
-        lines.append(f"Не учитываются необязательные (extra): {names}")
-    return lines
+def open_repository(config: Config):
+    """Открыть тестовый репозиторий или репозиторий PyPI."""
+    if config.test_mode:
+        return FileRepository.load(config.repo)
+    return PypiRepository(config.repo)
+
+
+def describe_root(config: Config, root: str) -> str:
+    """Вернуть подпись анализируемого пакета для отчёта."""
+    if config.test_mode:
+        return f"пакета {root} (тестовый репозиторий {config.repo})"
+    version = "последняя версия" if config.version == LATEST \
+        else f"версия {config.version}"
+    return f"пакета {root} ({version})"
 
 
 def run(config: Config) -> list[str]:
-    """Выполнить анализ и вернуть строки для вывода."""
-    if config.test_mode:
-        raise RepositoryError("тестовый режим пока не поддерживается")
-    repository = PypiRepository(config.repo)
-    return format_direct(repository.package(config.package, config.version))
+    """Построить граф зависимостей и вернуть строки отчёта.
+
+    Для анализируемого пакета берётся заданная версия, для остальных
+    пакетов графа - последняя.
+    """
+    repository = open_repository(config)
+    root = config.package if config.test_mode \
+        else normalize_name(config.package)
+
+    def dependencies(name: str) -> list[str]:
+        """Прямые зависимости пакета нужной версии."""
+        version = config.version if name == root else LATEST
+        return repository.dependencies(name, version)
+
+    graph = build_graph(root, dependencies, config.filter_substring)
+    return format_graph(graph, describe_root(config, root),
+                        config.filter_substring)
 
 
 def main(argv: list[str] | None = None) -> int:

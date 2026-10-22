@@ -68,7 +68,7 @@ def parse_args(argv: list[str] | None = None) -> Config:
     """Разобрать опции и проверить значения; ошибка - ConfigError."""
     args = build_parser().parse_args(argv)
     test_mode = args.test_mode
-    return Config(
+    config = Config(
         package=check_package(args.package, test_mode),
         repo=check_repo(args.repo, test_mode),
         test_mode=test_mode,
@@ -77,6 +77,11 @@ def parse_args(argv: list[str] | None = None) -> Config:
         ascii_tree=args.ascii_tree,
         filter_substring=check_filter(args.filter),
     )
+    substring = config.filter_substring
+    if substring and substring.lower() in config.package.lower():
+        raise ConfigError(f"анализируемый пакет '{config.package}' сам "
+                          f"содержит подстроку фильтра '{substring}'")
+    return config
 
 
 def check_package(name: str, test_mode: bool) -> str:

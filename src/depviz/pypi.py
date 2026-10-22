@@ -132,3 +132,8 @@ class PypiRepository:
         return PackageInfo(info.get("name", name),
                            info.get("version", version), chosen["filename"],
                            tuple(parse_requirement(item) for item in raw))
+
+    def dependencies(self, name: str, version: str = LATEST) -> list[str]:
+        """Вернуть имена обязательных прямых зависимостей пакета."""
+        required = self.package(name, version).required()
+        return list(dict.fromkeys(req.name for req in required))

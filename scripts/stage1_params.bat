@@ -5,7 +5,7 @@ cd /d "%~dp0.."
 
 call :run --package requests
 call :run -p flask -r https://pypi.org/pypi -v 3.0.0 -o out.svg -a -f click
-call :run -p A -t -r README.md
+call :run -p A -t -r examples/repos/simple.txt
 
 call :run
 call :run -p "bad name!"
@@ -16,8 +16,8 @@ call :run -p requests -o no/such/dir/graph.svg
 call :run -p requests -f ""
 call :run -p A -t
 call :run -p A -t -r missing.txt
-call :run -p requests -t -r README.md
-call :run -p A -t -r README.md -v 1.0
+call :run -p requests -t -r examples/repos/simple.txt
+call :run -p A -t -r examples/repos/simple.txt -v 1.0
 goto :eof
 
 :run

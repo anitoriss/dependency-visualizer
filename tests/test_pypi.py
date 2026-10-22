@@ -99,3 +99,14 @@ def test_fetch_errors_are_passed_on():
     repo = PypiRepository(BASE, FakeFetch(error))
     with pytest.raises(RepositoryError, match="не найдено"):
         repo.package("x", "1.0")
+
+
+def test_dependencies_are_unique_required_names():
+    """dependencies возвращает имена без extra и без повторов."""
+    fetch = FakeFetch(release("x", [("x-1.0-py3-none-any.whl", WHEEL)]))
+    download = FakeFetch(make_wheel("x", [
+        "idna>=2; python_version < '3.8'", "idna>=3", "certifi",
+        "pysocks; extra == 'socks'",
+    ]))
+    repo = PypiRepository(BASE, fetch, download)
+    assert repo.dependencies("x") == ["idna", "certifi"]
